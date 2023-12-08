@@ -1,13 +1,15 @@
-# CPU Warframe
+# CPU WarGame
 ## CPU漏洞演武场
 
-该项目前端使用React开发
+该项目前端使用React开发，后端基于Flask框架，涉及MySQL数据库与SSH安全外壳协议。
 
 ## 运行/部署脚本
-
 在项目根目录下, 打开命令行运行如下命令:
 
-### `npm run start`
+### `npm install`
+用以安装npm依赖
+
+### `npm start`
 
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
