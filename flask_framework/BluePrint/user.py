@@ -83,7 +83,7 @@ def Send_captcha():
     captcha = random.sample(str, 4)
     # 将验证码转换为字符串形式
     captcha = ''.join(captcha)
-    message = Message(subject='CPU_WarGame验证码', recipients=[form], body=f'您的验证码是：{captcha}')
+    message = Message(subject='CPU_WarGame处理器漏洞演武场 验证码', recipients=[form], body=f'您的验证码是：{captcha}')
     mail.send(message)
     # 将验证码上传服务器，使用memcached/redis缓存
     # 或用数据库表的方式存储（权宜之计，速度慢）

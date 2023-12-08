@@ -22,20 +22,20 @@ def allowed_file(filename):
 
 def ssh_command(command):
     with fabric.Connection(configs.USER + configs.IP) as conn:
-        result = conn.run(command, hide=False)
-        print(result.stdout)
+        result = conn.run(command, hide=True)
+        print(result.stderr)
         return result.ok
         
 
 def upload(filename):
     upload = f'scp D:/Pycharm/CPU_wargame/flask_framework/C_Files/{filename} cpu@10.122.218.87:/home' \
-                         f'/cfiles'
+                         f'/cpu/meltdown_long'
     os.system(upload)
     print('c文件上传成功')
 
 
 def cstruct(prename):
-    construct = f'cd /home/cfiles && touch {prename[0]}.txt'
+    construct = f'cd /home/cpu/meltdown_long && touch {prename[0]}.txt'
     result = ssh_command(construct)
     if result:
         print('成功创建远程文件')
@@ -43,17 +43,23 @@ def cstruct(prename):
         print('创建远程文件失败')
 
 
-def cpile(pre_task):
-    compile_words = pre_task+{'> /home/cfiles/{prename[0]}.txt 2>&1'}
+def make_file(prename):
+    make = f'gcc -o /home/cpu/meltdown_long/{prename[0]} /home/cpu/meltdown_long/{prename[0]}.c -L/home/cpu/meltdown_long/libkdump -Ilibkdump -lkdump -static -O3 -pthread ' \
+                       f'-Wno-attributes -m64'
+    return make
+
+
+def cpile(pre_task,prename):
+    compile_words = f'{pre_task} > /home/cpu/meltdown_long/{prename[0]}.txt 2>&1'
     result = ssh_command(compile_words)
     if result:
-        print('成功编译运行')
+        print('成功运行')
     else:
-        print('编译运行失败')
+        print('运行失败')
     
     
-def download(prename):
-    download = f"scp cpu@10.122.218.87:/home/cfiles/{prename[0]}.txt D:/Pycharm/CPU_wargame" \
+def download(prename0):
+    download = f"scp cpu@10.122.218.87:/home/cpu/meltdown_long/{prename0}.txt D:/Pycharm/CPU_wargame" \
                f"/flask_framework" \
                f"/Rturnfiles"
     os.system(download)

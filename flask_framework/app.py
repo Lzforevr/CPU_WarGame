@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 import configs, functions
 from BluePrint.main_screen import bp as main_bp
 from BluePrint.user import bp as user_bp
+from BluePrint.games import bp as game_bp
 from exts import db, mail  # 从扩展中导入对象
 
 app = Flask(__name__)
@@ -25,10 +26,11 @@ mail.init_app(app)
 #  绑定blueprint中的对象
 app.register_blueprint(user_bp)
 app.register_blueprint(main_bp)
-
+app.register_blueprint(game_bp)
 # 数据库迁移
 migrate = Migrate(app, db)
 
+# 以下配置用于https协议，暂未完成
 # 指定CA证书与密钥文件位置
 app.config['SSL_CERTIFICATE'] = 'D:/Pycharm/CPU_wargame/flask_framework/server.crt'
 app.config['SSL_PRIVATE_KEY'] = 'D:/Pycharm/CPU_wargame/flask_framework/server.key'
