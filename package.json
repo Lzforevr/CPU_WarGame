@@ -1,51 +1,42 @@
 {
-  "name": "cpu-warframe",
-  "version": "0.1.0",
+  "name": "cpu-warframe-frontend",
   "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
+  },
   "dependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "@douyinfe/semi-icons": "^2.45.2",
-    "@douyinfe/semi-ui": "^2.42.2",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "axios": "^1.6.0",
+    "@douyinfe/semi-ui": "^2.48.0",
+    "@icon-park/react": "^1.4.2",
+    "axios": "^1.6.2",
     "react": "^18.2.0",
     "react-cookies": "^0.1.1",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.15.0",
-    "react-scripts": "^5.0.1",
-    "web-vitals": "^2.1.4",
-    "webpack": "^5.89.0",
-    "webpack-cli": "^5.1.4"
+    "react-infinite-scroller": "^1.2.6",
+    "react-router": "^6.20.1",
+    "react-router-dom": "^6.20.1",
+    "sass": "^1.69.5"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "description": "该项目前端使用React开发",
-  "main": "index.js",
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "devDependencies": {
+    "@types/react": "^18.2.37",
+    "@types/react-cookies": "^0.1.3",
+    "@types/react-dom": "^18.2.15",
+    "@types/react-infinite-scroller": "^1.2.5",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "eslint": "^8.53.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.4",
+    "prettier": "3.1.0",
+    "prettier-eslint": "^16.1.2",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.0"
+  }
 }
