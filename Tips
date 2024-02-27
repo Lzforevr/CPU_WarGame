@@ -1,0 +1,68 @@
+项目完成时注意做到以下几点：
+1.删除带有任意test字样的html文件、py文件路由
+2.ubuntu上，c文件夹名为cfiles，txt文件夹名为rturnfiles（没必要）
+
+
+主要的任务：
+1.设置游戏子路由的按钮
+2.子路由/games/game1，/games/game2……；
+	期望实现的功能：
+		·页面效果：左侧1/3的区域以一种渐变色为背景，上方为游戏名，下方为游戏封面图；
+			 中间区域简单描述该Poc代码目的与效果；下方附上效果呈现gif图；
+			  最右侧1/3区域，提供文件上传功能，并提醒“请上传.c格式文件，且以utf8编码”
+			  当用户提供的代码运行成功后，形式待定！！！
+3./leaderboard排行榜的前端呈现（尽量有一定美感），在榜单下显示“排名靠前用户可以兑换奖励”
+
+需要进一步完善的：
+1.用户登录密码错误要有相应提示
+2.用户登陆成功，网页右上角显示用户名
+3.退出登录按键（目前倒是有点击反馈）
+4.美化页面效果（渐变的边框背景颜色）
+
+
+游戏原理步骤：
+*前提：连接好ssh！！！//非常容易连接： 主机：10.122.243.55（会改变） 用户名：cpu 密码：cpuwargame
+1.用户上传c文件到服务器（file.save保存到服务器）
+2.使用os命令将该c文件复制到远程机，同时在远程机创建临时.txt文件保存编译运行结果
+3.使用fabric命令在远程机gcc编译运行该文件，将结果保存到创建好的.txt中
+4.将结果临时文件复制到服务器目录（同样是os）
+5.读取结果值，进行比对，返回给前端，再反馈给用户
+
+@bp.route('/game1', methods=['GET', 'POST'])
+def Breaking_KASLR():
+    if request.method == 'GET':
+        return render_template('test_sendfiles.html')
+    else:
+        # if request.method=='POST':
+        if 'file' not in request.files:
+            return jsonify({'code': 100, 'msg': '文件格式错误', 'data': None})
+        else:
+            file = request.files['file']
+            # 对文件格式（包括扩展名）进行检查
+            if file.filename == '':
+                return jsonify({'code': 300, 'msg': '文件名不能为空', 'data': None})
+            elif file and functions.allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(upload_folder, filename))
+                prename = file.filename.rsplit('.', 1)
+                upload(file.filename)
+                cstruct(prename)
+                ssh_command(make_file(prename))
+                cpile(pre_task=f'sudotaskset0x1./{prename[0]}', prename=prename)
+                download(prename[0])
+                with open(configs.DOWNLOAD_FOLDER + f'/{prename[0]}.txt', 'r') as file:
+                    contents = final_line(file)
+                    # 使用正则表达式匹配指定格式的内容
+                    pattern = r'0x[a-fA-F\d]+'
+                    matches = re.findall(pattern, contents)
+                    # 将匹配到的内容保存到变量
+                    g.kaslr = matches[0] if matches else None
+                    # 积分机制
+                    # ifg.kaslrisnotNone:
+                    # user=User_data.query.filter_by(id=g.id).first()
+                    # user.score+=10
+                    # db.session.commit()
+                    print(f'kaslr:{g.kaslr}')
+                    content = return_content(file)
+                    print(content)
+                    return str(content)
