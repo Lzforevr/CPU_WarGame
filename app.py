@@ -10,6 +10,7 @@ from BluePrint.main_screen import bp as main_bp
 from BluePrint.user import bp as user_bp
 from BluePrint.games import bp as game_bp
 from BluePrint.library import bp as lib_bp
+from BluePrint.tips import bp as tips_bp
 from exts import db, mail  # 从扩展中导入对象
 
 app = Flask(__name__)
@@ -29,7 +30,7 @@ app.register_blueprint(user_bp)
 app.register_blueprint(main_bp)
 app.register_blueprint(game_bp)
 app.register_blueprint(lib_bp)
-
+app.register_blueprint(tips_bp)
 # 数据库迁移
 migrate = Migrate(app, db)
 
