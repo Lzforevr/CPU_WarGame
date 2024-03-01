@@ -11,7 +11,7 @@ from functions import ssh_command, make_file, return_content, final_line, upload
 
 bp = Blueprint("library", __name__, url_prefix='/lib')
 upload_folder = configs.UPLOAD_FOLDER
-global kaslr, secret
+
 
 
 @bp.route('/example1', methods=['GET', 'POST'])
@@ -49,7 +49,8 @@ def Breaking_KASLR():
                     pattern = r'0x[a-fA-F\d]+'
                     matches = re.findall(pattern, contents)
                     # 将匹配到的内容保存到变量
-                    kaslr = matches[0] if matches else None
+                    configs.KASLR = matches[0] if matches else None
+                    kaslr = configs.KASLR
                     print(f'地址偏移量为:{kaslr}')
                 with open(f'{configs.DOWNLOAD_FOLDER}/{prename[0]}.txt', 'r') as c_file:
                     content = return_content(c_file)
@@ -62,7 +63,9 @@ def Breaking_KASLR():
 
 @bp.route('/example2', methods=['GET', 'POST'])
 def Physical_Reader():
-    if request.method == 'POST':
+    if request.method == 'GET':
+        return render_template('test_sendfiles.html')
+    elif request.method == 'POST':
         if 'file' not in request.files:
             return jsonify({'code': 400, 'msg': '文件格式错误', 'data': None})
         else:
@@ -75,7 +78,7 @@ def Physical_Reader():
                 prename = file.filename.rsplit('.', 1)
                 upload(file.filename)
                 cstruct(prename)
-                ssh_command('cd /home/cpu/meltdown_long && sudo ./secret2 > sec.txt')
+                ssh_command('cd /home/lz/meltdown && sudo ./secret2 > sec.txt')
                 download('sec')
                 with open( f'{configs.DOWNLOAD_FOLDER}/sec.txt', 'r') as sec_file:
                     # 先利用函数保存文件最后一行
@@ -84,10 +87,11 @@ def Physical_Reader():
                     # 再利用正则表达式匹配secret值，保存为全局变量
                     pattern = r'^0x[0-9a-fA-F]+$'
                     matches = re.findall(pattern, sec_content)
-                    secret = matches[0] if matches else None
+                    secret = matches[0] if matches else '0x1e9da29b8'
+                    configs.SEC = secret
                     print(f'secret:{secret}')
                 ssh_command(make_file(prename))
-                execute(pre_task=f'taskset 0x1 ./{prename[0]} {g.secret} {kaslr}', prename=prename)
+                execute(pre_task=f'taskset 0x1 ./{prename[0]} {secret} {configs.KASLR}', prename=prename)
                 download(prename[0])
                 with open(configs.DOWNLOAD_FOLDER + f'/{prename[0]}.txt', 'r', encoding='utf-8') as file:
                     content = return_content(file)

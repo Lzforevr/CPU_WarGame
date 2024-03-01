@@ -67,7 +67,7 @@ def execute(pre_task, prename):
 # 注意使用fabric.put
 def download(prename0):
     with fabric.Connection(user=configs.USER_V,host=configs.IP_V,connect_kwargs={'key_filename':'C:/Users/86189/.ssh/virtual_machine'}) as conn:
-        conn.get(f'/home/lz/meltdown/{prename0}.txt',local=f'D:/Pycharm/CPU_wargame/flask_framework/Rturnfiles')
+        conn.get(f'/home/lz/meltdown/{prename0}.txt',local=f'D:/Pycharm/CPU_wargame/flask_framework/Rturnfiles/{prename0}.txt')
         print(f'成功下载输出:{prename0}')
 
 

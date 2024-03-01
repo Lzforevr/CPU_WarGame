@@ -36,3 +36,6 @@ PRIVATE_KEY_V = 'C:/Users/86189/.ssh/virtual_machine'
 
 ROUTE_FOR_V = '/home/cpu/meltdown'
 ROUTE_FOR_LINUX = '/home/cpu/meltdown_long'
+
+KASLR = ''
+SEC = ''
