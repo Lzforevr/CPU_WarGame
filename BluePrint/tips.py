@@ -14,3 +14,4 @@ def Tips():
         "msg": all_tips[num]
     }
     return jsonify(rt)
+

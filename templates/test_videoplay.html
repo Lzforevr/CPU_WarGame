@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频播放测试</title>
+</head>
+<body>
+    <h1>视频播放器</h1>
+
+    <video width="640" height="360" controls>
+        <source src="{{ url_for('tips.Video', filename='cat1.mp4') }}" type="video/mp4">
+
+    </video>
+</body>
+</html>

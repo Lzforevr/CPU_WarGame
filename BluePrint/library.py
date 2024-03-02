@@ -1,14 +1,14 @@
 import os
 import re
 
-from flask import Blueprint, request, render_template, jsonify, g, send_file
+from flask import Blueprint, request, render_template, jsonify, g, send_file, session
 from werkzeug.utils import secure_filename
 
 import configs
 import functions
 from functions import ssh_command, make_file, return_content, final_line, upload, cstruct, execute, download,out_line
-
-
+from model import User_data
+from exts import db
 bp = Blueprint("library", __name__, url_prefix='/lib')
 upload_folder = configs.UPLOAD_FOLDER
 
@@ -56,7 +56,15 @@ def Breaking_KASLR():
                     content = return_content(c_file)
                     print(f'{content}')
                     if c_file:
-                        return jsonify({'code':200,'msg':"成功上传文件",'data':content})
+                        user_id = session.get('user_id')
+                        user = User_data.query.filter_by(id=user_id).first()
+                        if not user:
+                            return '用户不存在，请登录后重试！'
+                        else:
+                            user.score = user.score+10
+                            db.session.commit()
+                        return jsonify({'code':200,'msg':"示例代码运行成功，获得10积分！",'data':content})
+
                     else:
                         return jsonify({'code':402,'msg':"文件错误",'data':'代码运行失败，请检查代码问题！'})
 
@@ -78,7 +86,7 @@ def Physical_Reader():
                 prename = file.filename.rsplit('.', 1)
                 upload(file.filename)
                 cstruct(prename)
-                ssh_command('cd /home/lz/meltdown && sudo ./secret2 > sec.txt')
+                ssh_command('sudo /home/lz/meltdown/secret2 > sec.txt')
                 download('sec')
                 with open( f'{configs.DOWNLOAD_FOLDER}/sec.txt', 'r') as sec_file:
                     # 先利用函数保存文件最后一行
@@ -91,12 +99,20 @@ def Physical_Reader():
                     configs.SEC = secret
                     print(f'secret:{secret}')
                 ssh_command(make_file(prename))
-                execute(pre_task=f'taskset 0x1 ./{prename[0]} {secret} {configs.KASLR}', prename=prename)
+                execute(pre_task=f'taskset 0x1 /home/lz/meltdown/{prename[0]} {secret} {configs.KASLR}', prename=prename)
                 download(prename[0])
-                with open(configs.DOWNLOAD_FOLDER + f'/{prename[0]}.txt', 'r', encoding='utf-8') as file:
+                with open(configs.DOWNLOAD_FOLDER + f'/{prename[0]}.txt', 'r') as file:
                     content = return_content(file)
                     print(content)
-                    return jsonify({'code': 200, 'msg': "成功上传文件", 'data': content})
+                    if file:
+                        user_id = session.get('user_id')
+                        user = User_data.query.filter_by(id=user_id).first()
+                        if not user:
+                            return '用户不存在，请登录后重试！'
+                        else:
+                            user.score = user.score+10
+                            db.session.commit()
+                        return jsonify({'code': 200, 'msg': "示例代码运行成功，获得10积分！", 'data': content})
 
 
 @bp.route('/example3', methods=['GET', 'POST'])
@@ -120,7 +136,15 @@ def Reliability():
                 with open(f'{configs.DOWNLOAD_FOLDER}/{prename[0]}.txt', 'r', encoding='utf-8') as c_file:
                     content = return_content(c_file)
                     print(content)
-                    return jsonify({'code': 200, 'msg': "成功上传文件", 'data': content})
+                    if c_file:
+                        user_id = session.get('user_id')
+                        user = User_data.query.filter_by(id=user_id).first()
+                        if not user:
+                            return '用户不存在，请登录后重试！'
+                        else:
+                            user.score = user.score+10
+                            db.session.commit()
+                        return jsonify({'code': 200, 'msg': "示例代码运行成功，获得10积分！", 'data': content})
 
 
 # 用于下载示例代码，根据字典键值对下载
