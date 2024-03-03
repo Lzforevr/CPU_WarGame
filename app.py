@@ -2,6 +2,8 @@ import os
 from flask import Flask, request, render_template, flash, redirect, jsonify, url_for
 from flask_cors import CORS
 from flask_migrate import Migrate
+from flask_script import Manager, Server
+from flask_script.commands import ShowUrls
 # 以下用于学习文件上传
 from werkzeug.utils import secure_filename
 
@@ -16,7 +18,7 @@ from exts import db, mail  # 从扩展中导入对象
 
 app = Flask(__name__)
 CORS(app)
-
+manager = Manager(app)
 #  绑定配置文件
 app.config.from_object(configs)
 # 将该路径上传到flask配置中，在其他文件使用路径时可通过current_app导入
@@ -144,5 +146,9 @@ def main():
                 # return jsonify({"code":505,"msg":"无效文件格式","data":None})
 
 
+# ssl_crt='C:/Users/86189/server.crt',ssl_key='C:/Users/86189/server.key' 用以在Server方法中配置https
+manager.add_command("runserver", Server(use_debugger=True))
+manager.add_command("show-url",ShowUrls())
+
 if __name__ == '__main__':
-    app.run(port=8000,debug=True)
+    manager.run()
