@@ -2,17 +2,32 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask C File Example</title>
+    <title>Image Rendering</title>
 </head>
 <body>
-    <h1>Flask C File Example</h1>
-    <form action="/games/game1" method="post">
-        <label for="data">输入要写入C文件的数据：</label>
-        <input type="text" id="data" name="data" required>
-        <br>
-        <button type="submit">提交</button>
-    </form>
+
+    <!-- Assuming you are using jQuery for AJAX request -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: '/lib/getImage', // replace with your actual route path if needed
+                method: 'GET',
+                success: function (response) {
+                    response.data.forEach(function (imageUrl, index) {
+                        var imgElement = $('<img>').attr('src', imageUrl).attr('alt', `Image ${index + 1}`);
+                        $('#image-container').append(imgElement);
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error fetching images:', xhr.responseText);
+                }
+            });
+        });
+    </script>
+
+    <div id="image-container"></div>
+
 </body>
 </html>

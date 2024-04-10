@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <form id="inputForm">
+        <label for="userInput">请输入游戏二代码：</label>
+        <textarea id="userInput" name="userInput"></textarea>
+        <button type="submit">上传代码</button>
+    </form>
+
+    <div id="fileWriteSuccess"></div>
+    <div id="operationResult"></div>
+    <div id="executionOutcome"></div>
+ <script src='/static/socketio.js'></script>
+<script type="text/javascript" charset="utf-8">
+// 前端JavaScript代码，基于socket.io库
+// 首先确保已连接到后端socket服务
+var socket = io.connect('http://[2001:da8:215:8f02:1fef:98a1:ddf1:de5e]:9000/game2');
+
+// 监听前端用户输入并发送至后端处理
+document.getElementById('inputForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const Input = document.getElementById('userInput').value; // 获取前端文本框内容
+    socket.emit('client_send', Input); // 发送到指定命名空间的后端事件
+});
+
+// 监听后端不同命名空间下的emit事件，并在前端页面相应位置显示返回值
+// 1. 文件写入成功事件
+socket.on('response', function(message) {
+        displayMessageToDOM('#operationResult', JSON.stringify(message));
+        console.log(message.data);
+});
+
+// 2. 执行命令后的结果
+socket.on('outcome', function(message) {
+    displayMessageToDOM('#executionOutcome', message.data);
+    console.log(message.data);
+});
+
+function displayMessageToDOM(selector, message) {
+    document.querySelector(selector).innerText = message;
+}
+
+// 其他针对特定返回值的监听事件可以按需添加
+</script>
+</body>
+</html>

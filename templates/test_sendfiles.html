@@ -3,12 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <title>文件上传</title>
+    <script src='/static/socketio.js'></script>
 </head>
 <body>
 <form  method="post" enctype="multipart/form-data">
     <input class="style_file_content" accept="text" type="file" name="file" id="upload_file_id"/>
     <input type="submit" value="Upload Here">
 </form>
+<h3>Socket.IO Example</h3>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- ... -->
+</head>
+<body>
 
+<h1>Socket.IO Example</h1>
+<form id="myForm">
+    <label for="data">Data:</label>
+    <input type="text" id="data" name="data">
+    <button type="button" id="submitButton">Submit</button>
+</form>
+
+<script>
+    {#// 引入 Socket.IO 客户端库#}
+    {#const socket = io.connect('http://' + document.domain + ':' + location.port + '/game1');#}
+    {##}
+    {#// 监听按钮点击事件#}
+    document.getElementById('submitButton').addEventListener('click', function() {
+})
+    {#document.getElementById('submitButton').addEventListener('click', function() {#}
+    {##}
+    {#    // 可以选择禁用表单提交或者显示一个加载状态#}
+    {#    this.disabled = true;#}
+    {#    this.innerText = 'Sending...';#}
+    {##}
+    {#// 接收服务器响应#}
+    {#socket.on('server_response', function(response) {#}
+    {#    console.log('Server response:', response.data);#}
+    {#    // 重新启用按钮#}
+    {#    document.getElementById('submitButton').disabled = false;#}
+    {#    document.getElementById('submitButton').innerText = 'Submit';#}
+</script>
 </body>
 </html>
+

@@ -3,15 +3,35 @@ import re
 
 from flask import Blueprint, request, render_template, jsonify, g, send_file, session
 from werkzeug.utils import secure_filename
-
+import string
 import configs
 import functions
-from functions import ssh_command, make_file, return_content, final_line, upload, cstruct, execute, download,out_line
-from model import User_data
 from exts import db
+from functions import ssh_command, make_file, return_content, final_line, upload, cstruct, execute, download, out_line
+from functions import socket_io
+from model import User_data
+
 bp = Blueprint("library", __name__, url_prefix='/lib')
 upload_folder = configs.UPLOAD_FOLDER
 
+
+# socket-io测试部分
+# @bp.route('/test',methods=['GET','POST'])
+# def Test():
+#     if request.method == 'GET':
+#         return render_template('socket_test.html')
+
+
+# @socket_io.on('server_response')
+# def test(data):
+#     print(f'Data is:{data}')
+#     if data:
+#         socket_io.emit('server_response', {'data': data})
+#
+#
+# @socket_io.on('client')
+# def process(data):
+#     print(data)
 
 
 @bp.route('/example1', methods=['GET', 'POST'])
@@ -24,7 +44,7 @@ def Breaking_KASLR():
         else:
             file = request.files['file']
             # 对文件格式（包括扩展名）进行检查
-            if file.filename == '':
+            if file.filename == string.whitespace:
                 return jsonify({'code': 401, 'msg': '文件名不能为空', 'data': None})
             elif file and functions.allowed_file(file.filename):
                 filename = secure_filename(file.filename)
@@ -32,17 +52,12 @@ def Breaking_KASLR():
                 prename = file.filename.rsplit('.', 1)
                 print(f'用户已上传：{file.filename}')
                 upload(file.filename)
-                # os.system(f'del D:/Pycharm/CPU_wargame/flask_framework/C_Files/{file.filename}')
-                cstruct(prename)
-                ssh_command(make_file(prename))
-                ##############################################
-                # 当使用虚拟机运行kaslr时偶尔会出现无法停止找不到的bug
-                ##############################################
-                execute(pre_task=f'sudo taskset 0x1 /home/lz/meltdown/{prename[0]}', prename=prename)
-                ssh_command(f'rm /home/lz/meltdown/{prename[0]}')
-                # 现在下载出问题，必须找到functions中的原因
+                cstruct(prename[0])
+                ssh_command(make_file(prename[0]))
+                execute(pre_task=f'sudo taskset 0x1 /home/bupt/hjl/meltdown/{prename[0]}', prename=prename)
+                ssh_command(f'rm /home/bupt/hjl/meltdown/{prename[0]}')
                 download(prename[0])
-                ssh_command(f'rm /home/lz/meltdown/{prename[0]}.txt')
+                ssh_command(f'rm /home/bupt/hjl/meltdown/{prename[0]}.txt')
                 with open(f'{configs.DOWNLOAD_FOLDER}/{prename[0]}.txt', 'r') as sh_file:
                     contents = final_line(sh_file)
                     # 使用正则表达式匹配指定格式的内容
@@ -59,11 +74,11 @@ def Breaking_KASLR():
                         user_id = session.get('user_id')
                         user = User_data.query.filter_by(id=user_id).first()
                         if not user:
-                            return '用户不存在，请登录后重试！'
+                            return jsonify({'code':400,'msg':"用户不存在",'data':'用户不存在,请登录后重试！'})
                         else:
                             user.score = user.score+10
                             db.session.commit()
-                        return jsonify({'code':200,'msg':"示例代码运行成功，获得10积分！",'data':content})
+                        return jsonify({'code':200,'msg':"示例代码运行成功，奖励10积分！",'data':content})
 
                     else:
                         return jsonify({'code':402,'msg':"文件错误",'data':'代码运行失败，请检查代码问题！'})
@@ -78,29 +93,31 @@ def Physical_Reader():
             return jsonify({'code': 400, 'msg': '文件格式错误', 'data': None})
         else:
             file = request.files['file']
-            if file.filename == '':
+            if file.filename == string.whitespace:
                 return jsonify({'code': 401, 'msg': '文件名不能为空', 'data': None})
             elif file and functions.allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(upload_folder, filename))
                 prename = file.filename.rsplit('.', 1)
                 upload(file.filename)
-                cstruct(prename)
-                ssh_command('sudo /home/lz/meltdown/secret2 > sec.txt')
+                cstruct(prename[0])
+                ssh_command('cd /home/bupt/hjl/meltdown && sudo ./secret2 > sec.txt')
                 download('sec')
                 with open( f'{configs.DOWNLOAD_FOLDER}/sec.txt', 'r') as sec_file:
                     # 先利用函数保存文件最后一行
-                    sec_content = out_line(sec_file)
-                    print(sec_file.readlines())
+                    sec_content = sec_file.read()
+                    print(sec_file.read())
                     # 再利用正则表达式匹配secret值，保存为全局变量
-                    pattern = r'^0x[0-9a-fA-F]+$'
+                    pattern = r'0x[0-9a-fA-F]+'
                     matches = re.findall(pattern, sec_content)
-                    secret = matches[0] if matches else '0x1e9da29b8'
+                    secret = matches[0] if matches else print('secret值获取失败')
                     configs.SEC = secret
                     print(f'secret:{secret}')
-                ssh_command(make_file(prename))
-                execute(pre_task=f'taskset 0x1 /home/lz/meltdown/{prename[0]} {secret} {configs.KASLR}', prename=prename)
+                ssh_command(make_file(prename[0]))
+                execute(pre_task=f'taskset 0x1 /home/bupt/hjl/meltdown/{prename[0]} {secret} {configs.KASLR}', prename=prename)
+                print('exe ok')
                 download(prename[0])
+                print('download ok')
                 with open(configs.DOWNLOAD_FOLDER + f'/{prename[0]}.txt', 'r') as file:
                     content = return_content(file)
                     print(content)
@@ -112,26 +129,28 @@ def Physical_Reader():
                         else:
                             user.score = user.score+10
                             db.session.commit()
-                        return jsonify({'code': 200, 'msg': "示例代码运行成功，获得10积分！", 'data': content})
+                        return jsonify({'code': 200, 'msg': "示例代码运行成功，奖励10积分！", 'data': content})
 
 
 @bp.route('/example3', methods=['GET', 'POST'])
 def Reliability():
-    if request.method == 'POST':
+    if request.method == 'GET':
+        return render_template('test_sendfiles.html')
+    elif request.method == 'POST':
         if 'file' not in request.files:
             return jsonify({'code': 100, 'msg': '文件格式错误', 'data': None})
         else:
             file = request.files['file']
-            if file.filename == '':
+            if file.filename == string.whitespace:
                 return jsonify({'code': 300, 'msg': '文件名不能为空', 'data': None})
             elif file and functions.allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(upload_folder, filename))
                 prename = file.filename.rsplit('.', 1)
                 upload(file.filename)
-                cstruct(prename)
-                ssh_command(make_file(prename))
-                execute(f'sudo taskset 0x1 ./{prename[0]} -1 {g.kaslr}')
+                cstruct(prename[0])
+                ssh_command(make_file(prename[0]))
+                execute(f'sudo taskset 0x1 /home/bupt/hjl/meltdown/{prename[0]} -1 {configs.KASLR}',prename)
                 download(prename[0])
                 with open(f'{configs.DOWNLOAD_FOLDER}/{prename[0]}.txt', 'r', encoding='utf-8') as c_file:
                     content = return_content(c_file)
@@ -144,7 +163,7 @@ def Reliability():
                         else:
                             user.score = user.score+10
                             db.session.commit()
-                        return jsonify({'code': 200, 'msg': "示例代码运行成功，获得10积分！", 'data': content})
+                        return jsonify({'code': 200, 'msg': "示例代码运行成功，奖励10积分！", 'data': content})
 
 
 # 用于下载示例代码，根据字典键值对下载
@@ -155,9 +174,24 @@ def Download_examples():
         filename = request.form['file']
         example_route = {
             'kaslr':'D:/大创/meltdown/kaslr_test2.c',
-            'physical_reader':'D:/Pycharm/meltdown/physical_reader_test.c',
+            'physical_reader':'D:/Pycharm/meltdown/physical_reader.c',
             'reliability':'D:/Pycharm/meltdown/reliability2.c'
         }
         return send_file(example_route[filename],as_attachment=True)
     else:
         return render_template('test_download.html')
+
+
+@bp.route('/getImage')
+def getImage():
+    data = [
+        'http://[2001:da8:215:8f02:1fef:98a1:ddf1:de5e]:9000/static/KASLR.png',
+        'http://[2001:da8:215:8f02:1fef:98a1:ddf1:de5e]:9000/static/Physical_Reader.png',
+        'http://[2001:da8:215:8f02:1fef:98a1:ddf1:de5e]:9000/static/Realiability.png'
+    ]
+    return jsonify({"code":200,"data":data})
+
+
+@bp.route('checkImage')
+def Image():
+    return render_template("test_writein.html")

@@ -60,13 +60,11 @@ def Login():
     user = User_data.query.filter_by(email=email).first()
     if not user:
         print('用户不存在')
-        # return redirect(url_for('user.Login'))
         return jsonify({'code': 300, 'msg': '用户不存在', "data": None})
     elif check_password_hash(user.pwd, functions.get_md5(password)):
         print('登录成功')
         # 设置session加密储存登录状态到cookie里（再次访问域名时，会保持登录状态）
         session['user_id'] = user.id
-        # return redirect(url_for('main.Games'))
         return jsonify({"code": 200, "msg": '登录成功', "data": None})
 
     else:

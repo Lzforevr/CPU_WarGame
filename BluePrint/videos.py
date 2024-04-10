@@ -6,10 +6,10 @@ bp = Blueprint("videos",__name__,url_prefix='/videos')
 @bp.route('/text')
 def Text():
     txt = {
-        'text1':'',
-        'text2':'',
-        'text3':'',
-        'text4':''
+        'text1':'cat1 从内存中读取图片数据',
+        'text2':'cat2 从内存中还原图像',
+        'text3':'memdump 破解一段内存中的文字',
+        'text4':'spy 监听文本缓冲区的输入内容'
     }
     return jsonify(txt)
 
