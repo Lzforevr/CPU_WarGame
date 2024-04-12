@@ -1,37 +1,17 @@
 import os
 import re
 
-from flask import Blueprint, request, render_template, jsonify, g, send_file, session
+from flask import Blueprint, request, render_template, jsonify, send_file, session
 from werkzeug.utils import secure_filename
 import string
 import configs
 import functions
 from exts import db
 from functions import ssh_command, make_file, return_content, final_line, upload, cstruct, execute, download, out_line
-from functions import socket_io
 from model import User_data
 
 bp = Blueprint("library", __name__, url_prefix='/lib')
 upload_folder = configs.UPLOAD_FOLDER
-
-
-# socket-io测试部分
-# @bp.route('/test',methods=['GET','POST'])
-# def Test():
-#     if request.method == 'GET':
-#         return render_template('socket_test.html')
-
-
-# @socket_io.on('server_response')
-# def test(data):
-#     print(f'Data is:{data}')
-#     if data:
-#         socket_io.emit('server_response', {'data': data})
-#
-#
-# @socket_io.on('client')
-# def process(data):
-#     print(data)
 
 
 @bp.route('/example1', methods=['GET', 'POST'])
@@ -64,9 +44,9 @@ def Breaking_KASLR():
                     pattern = r'0x[a-fA-F\d]+'
                     matches = re.findall(pattern, contents)
                     # 将匹配到的内容保存到变量
-                    configs.KASLR = matches[0] if matches else None
-                    kaslr = configs.KASLR
-                    print(f'地址偏移量为:{kaslr}')
+                configs.KASLR = matches[0] if matches else None
+                kaslr = configs.KASLR
+                print(f'地址偏移量为:{kaslr}')
                 with open(f'{configs.DOWNLOAD_FOLDER}/{prename[0]}.txt', 'r') as c_file:
                     content = return_content(c_file)
                     print(f'{content}')
@@ -114,6 +94,7 @@ def Physical_Reader():
                     configs.SEC = secret
                     print(f'secret:{secret}')
                 ssh_command(make_file(prename[0]))
+                print(configs.KASLR)
                 execute(pre_task=f'taskset 0x1 /home/bupt/hjl/meltdown/{prename[0]} {secret} {configs.KASLR}', prename=prename)
                 print('exe ok')
                 download(prename[0])
@@ -185,13 +166,67 @@ def Download_examples():
 @bp.route('/getImage')
 def getImage():
     data = [
-        'http://[2001:da8:215:8f02:1fef:98a1:ddf1:de5e]:9000/static/KASLR.png',
-        'http://[2001:da8:215:8f02:1fef:98a1:ddf1:de5e]:9000/static/Physical_Reader.png',
-        'http://[2001:da8:215:8f02:1fef:98a1:ddf1:de5e]:9000/static/Realiability.png'
+        f'http://[{configs.IPV6}]:9000'+'/static/KASLR.png',
+        f'http://[{configs.IPV6}]:9000'+'/static/Physical_Reader.png',
+        f'http://[{configs.IPV6}]:9000'+'/static/Realiability.png'
     ]
     return jsonify({"code":200,"data":data})
 
 
-@bp.route('checkImage')
-def Image():
-    return render_template("test_writein.html")
+@bp.route('/getProjects', methods=['GET'])
+def get_projects():
+    data = [
+        {
+            "typename": "Meltdown:熔断漏洞",
+            "games": [
+                {
+                    "id": 0,
+                    "name": "示例1：内核地址破坏者(KASLR Breaker)",
+                    "desc": "从Linux内核4.12开始，默认情况下KASLR（内核地址空间布局随机化）处于活动状态。\n这意味着内核的位置（以及映射整个物理内存的直接物理映射）随着每次重新启动而变化。"
+                            "在这一示例中，你将尝试使用Meltdown来泄露直接物理映射的（秘密）随机化，当你修改的代码运行成功后，将会显示一段文字：\n"
+                            "[+] Direct physical map offset: 0xffff880000000000（例）\n"
+                            "其中这串十六进制的数字就是通过漏洞直接得到的随机化地址偏移量！\n"
+                            "值得注意的是，你在后面游戏中实现的Poc都需要基于这一串地址~",
+                    "imgUrl": "https://tse1-mm.cn.bing.net/th/id/OIP-C.2hvpP-dB3A9PL2s9m5eZTgAAAA?rs=1&pid=ImgDetMain"
+                },
+                {
+                    "id": 1,
+                    "name": "示例2：揭露内存的面纱(Physical Memory Reader)",
+                    "desc": "这个示例通过直接读取物理内存从不同的进程中读取内存的值。\n"
+                            "原则上，这个程序应该可以读取任意的物理地址。然而，由于物理内存包含许多非人类可读的数据，\n我们将在你提交游戏文件后，自动运行一个测试文件（secret.c"
+                            "），它将人类可读的字符串放入内存，并直接提供此字符串的物理地址。\n"
+                            "此后，如果你的程序运行成功，将返回类似下面的内容：\n"
+                            "[+] Physical address : 0x390fff400 	 //真正的物理地址\n"
+                            "[+] Physical offset : 0xffff880000000000 //内核地址偏移量\n"
+                            "[+] Reading virtual address: 0xffff880390fff400\n"
+                            "If you can read this, this is really bad //secret.c所写入的可读字符串",
+                    "imgUrl": "https://roqstar.s3.amazonaws.com/users/22682/items/1945-64vaxNrZ.jpg"
+                },
+                {
+                    "id": 2,
+                    "name": "示例3：可靠度vs命中率(Reliability Test)",
+                    "desc": "众所周知，物理内存的可靠性与Poc代码读取这一内存的命中率是呈负相关的！\n"
+                            "此程序的目的是通过不断重复进行内存读取，利用缓存侧信道攻击来泄露 secret "
+                            "变量的值（secret变量在每次运行时随机生成）。\n在攻击中，每个循环迭代都会读取一个物理地址中的数据，并检查是否与 secret "
+                            "的值相等。根据攻击结果，会增加相应的计数器，并输出攻击成功率和读取的数值数量。\n"
+                            "假如你的代码运行成功，它的最后一行会输出：\n"
+                            "[-] Success rate: 99.93% (read 1354 values) （例）\n"
+                            "该结果表明通过meltdown漏洞得到真实物理内存的成功率高达99.93%！",
+                    "imgUrl": "D:/Pycharm/CPU_wargame/flask_framework/static/games_picture/meltdown.png"
+                }
+            ]
+        },
+        {
+            "typename": "Knight:骑士漏洞",
+            "games": [
+                {
+                    "id": 3,
+                    "name": "示例4:来日方长……",
+                    "desc": "骑士漏洞暂未开发",
+                    "imgUrl": "url_to_image_3"
+                }
+            ]
+        }
+    ]
+
+    return jsonify({"code": 200, "data": data})

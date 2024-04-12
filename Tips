@@ -26,43 +26,4 @@
 2.使用os命令将该c文件复制到远程机，同时在远程机创建临时.txt文件保存编译运行结果
 3.使用fabric命令在远程机gcc编译运行该文件，将结果保存到创建好的.txt中
 4.将结果临时文件复制到服务器目录（同样是os）
-5.读取结果值，进行比对，返回给前端，再反馈给用户
-
-@bp.route('/game1', methods=['GET', 'POST'])
-def Breaking_KASLR():
-    if request.method == 'GET':
-        return render_template('test_sendfiles.html')
-    else:
-        # if request.method=='POST':
-        if 'file' not in request.files:
-            return jsonify({'code': 100, 'msg': '文件格式错误', 'data': None})
-        else:
-            file = request.files['file']
-            # 对文件格式（包括扩展名）进行检查
-            if file.filename == '':
-                return jsonify({'code': 300, 'msg': '文件名不能为空', 'data': None})
-            elif file and functions.allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(upload_folder, filename))
-                prename = file.filename.rsplit('.', 1)
-                upload(file.filename)
-                cstruct(prename)
-                ssh_command(make_file(prename))
-                cpile(pre_task=f'sudotaskset0x1./{prename[0]}', prename=prename)
-                download(prename[0])
-                with open(configs.DOWNLOAD_FOLDER + f'/{prename[0]}.txt', 'r') as file:
-                    contents = final_line(file)
-                    # 使用正则表达式匹配指定格式的内容
-                    pattern = r'0x[a-fA-F\d]+'
-                    matches = re.findall(pattern, contents)
-                    # 将匹配到的内容保存到变量
-                    g.kaslr = matches[0] if matches else None
-                    # 积分机制
-                    # ifg.kaslrisnotNone:
-                    # user=User_data.query.filter_by(id=g.id).first()
-                    # user.score+=10
-                    # db.session.commit()
-                    print(f'kaslr:{g.kaslr}')
-                    content = return_content(file)
-                    print(content)
-                    return str(content)
+5.读取结果值，进行比对，返回给前端，再反馈给用户。

@@ -4,10 +4,12 @@ import fabric
 import paramiko
 from flask import current_app
 from flask_socketio import SocketIO
+from numpy.core.defchararray import rsplit
+
 import configs
 
 
-socket_io = SocketIO(cors_allowed_origins=['http://[2001:da8:215:8f02:1fef:98a1:ddf1:de5e]:8080','8.130.125.140:80'])
+socket_io = SocketIO(cors_allowed_origins=[configs.IP_Nginx,f'http://[{configs.IPV6}]:9000'])
 
 
 def get_md5(pwd):
@@ -70,24 +72,25 @@ def game_upload(filename,remote_path):
 # 自定义libkdump.c的编译命令
 def customed_make(name,cnt):
     if cnt == 'ST':
-        make = f'gcc /home/bupt/hjl/meltdown/{name}.c -o /home/bupt/hjl/meltdown/{name} -m64 -L/home/bupt/hjl/meltdown/libkdump -I/home/bupt/hjl/meltdown/libkdump -lkdump -static -O3 -pthread ' \
+        make = f'gcc /home/bupt/hjl/meltdown/{name}.c -o /home/bupt/hjl/meltdown/{name} -m64 -L/home/bupt/hjl/meltdown/customc -I/home/bupt/hjl/meltdown/customc -lkdump -static -O3 -pthread ' \
                f'-Wno-attributes -m64'
+        return make
     elif cnt == 'ND':
-        make = f'gcc /home/bupt/hjl/meltdown/{name}.c -o /home/bupt/hjl/meltdown/{name} -m64 -L/home/bupt/hjl/meltdown/libkdump -I/home/bupt/hjl/meltdown/libkdump -lkdump -static -O3 -pthread ' \
+        make = f'gcc /home/bupt/hjl/meltdown/{name}.c -o /home/bupt/hjl/meltdown/{name} -m64 -L/home/bupt/hjl/meltdown/customh -I/home/bupt/hjl/meltdown/customh -lkdump -static -O3 -pthread ' \
                f'-Wno-attributes -m64'
+        return make
+
 
 # 示例代码上传函数
 def upload(filename):
     with fabric.Connection(user=configs.USER,host=configs.IP,connect_kwargs={'key_filename':configs.PRIVATE_KEY}) as conn:
         result = conn.put(f'D:/Pycharm/CPU_wargame/flask_framework/C_Files/{filename}','/home/bupt/hjl/meltdown')
         print(result)
-        if result:
-            print('c文件上传成功')
-            if filename in ['game1.c','game2.c','game3.c']:
-                return f'文件:{filename} 上传成功'
-        else:
-            if filename in ['game1.c','game2.c','game3.c']:
-                return 'c文件上传失败！'
+    if result:
+        print('c文件上传成功')
+        return f'文件:{filename} 上传成功'
+    else:
+        return 'c文件上传失败！'
 
 
 def cstruct(prename):
@@ -95,12 +98,10 @@ def cstruct(prename):
     result = ssh_command(construct)
     if result:
         print('成功创建远程文件')
-        if prename in ['game1', 'game2', 'game3']:
-            return f'成功创建远程文件:{prename}'
+        return f'成功创建远程文件:{prename}'
     else:
         print('创建远程文件失败')
-        if prename in ['game1', 'game2', 'game3']:
-            return '创建远程文件失败！'
+        return '创建远程文件失败！'
 
 
 # 通过这一复杂命令利用libkdump库编译成可执行文件
@@ -115,12 +116,10 @@ def execute(pre_task, prename):
     result = ssh_command(compile_words)
     if result:
         print(f'{prename[0]}成功运行')
-        if prename[0] in ['game1', 'game2', 'game3']:
-            return f'{prename[0]}成功运行'
+        return f'{prename[0]}成功运行'
     else:
         print(f'{prename[0]}运行失败')
-        if prename[0] in ['game1', 'game2', 'game3']:
-            return '代码远程执行失败！'
+        return '代码远程执行失败！'
 
 
 # 注意使用fabric.put
@@ -129,11 +128,9 @@ def download(prename0):
         result = conn.get(f'/home/bupt/hjl/meltdown/{prename0}.txt',local=f'D:/Pycharm/CPU_wargame/flask_framework/Rturnfiles/{prename0}.txt')
         if result:
             print(f'成功下载输出:{prename0}')
-            if prename0 in ['game1', 'game2', 'game3']:
-                return f'成功下载输出{prename0}'
+            return f'成功下载输出{prename0}'
         else:
-            if prename0 in ['game1', 'game2', 'game3']:
-                return '执行结果下载失败！'
+            return '执行结果下载失败！'
 
 
 def return_content(file):

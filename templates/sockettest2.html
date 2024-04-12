@@ -14,7 +14,7 @@
     <div id="fileWriteSuccess"></div>
     <div id="operationResult"></div>
     <div id="executionOutcome"></div>
- <script src='/static/socketio.js'></script>
+ <script src='/static/socketio.js'></script>S
 <script type="text/javascript" charset="utf-8">
 // 前端JavaScript代码，基于socket.io库
 // 首先确保已连接到后端socket服务
@@ -31,13 +31,13 @@ document.getElementById('inputForm').addEventListener('submit', function(event) 
 // 1. 文件写入成功事件
 socket.on('response', function(message) {
         displayMessageToDOM('#operationResult', JSON.stringify(message));
-        console.log(message.data);
+        console.log(message);
 });
 
 // 2. 执行命令后的结果
 socket.on('outcome', function(message) {
     displayMessageToDOM('#executionOutcome', message.data);
-    console.log(message.data);
+    console.log(message);
 });
 
 function displayMessageToDOM(selector, message) {
