@@ -1,0 +1,4 @@
+[32;1m[+][0m Physical address       : [33;1m0x3509468a0[0m
+[32;1m[+][0m Physical offset        : [33;1m0xffff880000000000[0m
+[32;1m[+][0m Reading virtual address: [33;1m0xffff8803509468a0[0m
+

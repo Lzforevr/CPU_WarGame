@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Rendering</title>
+</head>
+<body>
+
+    <!-- Assuming you are using jQuery for AJAX request -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: '/lib/getImage', // replace with your actual route path if needed
+                method: 'GET',
+                success: function (response) {
+                    response.data.forEach(function (imageUrl, index) {
+                        var imgElement = $('<img>').attr('src', imageUrl).attr('alt', `Image ${index + 1}`);
+                        $('#image-container').append(imgElement);
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error fetching images:', xhr.responseText);
+                }
+            });
+        });
+    </script>
+
+    <div id="image-container"></div>
+
+</body>
+</html>

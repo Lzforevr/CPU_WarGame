@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Download Files</title>
+</head>
+<body>
+    <h1>在此处下载示例代码</h1>
+    <button onclick="downloadFile('kaslr')">KASLR</button>
+    <button onclick="downloadFile('physical_reader')">Physical_Reader</button>
+    <button onclick="downloadFile('reliability')">Reliability</button>
+    <script>
+        function downloadFile(filename) {
+            // 创建一个 FormData 对象，将文件名作为参数添加到 FormData 中
+            var formData = new FormData();
+            formData.append('file', filename);
+
+            // 使用 fetch 发起 POST 请求
+            fetch('/lib/download', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                // 可以在这里处理响应，例如检查状态码等
+                if (response.ok) {
+                    // 如果请求成功，进行文件下载
+                    response.blob().then(blob => {
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = filename + '.c'; // 设置下载的文件名
+                        link.click();
+                    });
+                } else {
+                    console.error('Download request failed:', response.status, response.statusText);
+                }
+            })
+            .catch(error => {
+                console.error('Error sending download request:', error);
+            });
+        }
+    </script>
+</body>
+</html>

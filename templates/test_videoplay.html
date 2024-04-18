@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频播放测试</title>
+</head>
+<body>
+    <h1>Video Player</h1>
+
+    <video id="videoPlayer" width="640" height="360" controls>
+        <source id="videoSource" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <script>
+        // Use JavaScript (or a front-end framework) to fetch video data and update the video source
+        const videoElement = document.getElementById('videoPlayer');
+        const videoSourceElement = document.getElementById('videoSource');
+
+        // Replace 'your_video.mp4' with the actual video file name
+        const videoFileName = 'your_video.mp4';
+
+        fetch(`/videos/${videoFileName}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Error loading video: ${response.statusText}`);
+                }
+                return response.blob();
+            })
+            .then(videoBlob => {
+                const videoUrl = URL.createObjectURL(videoBlob);
+                videoSourceElement.src = videoUrl;
+                videoElement.load();
+            })
+            .catch(error => console.error(error));
+    </script>
+</body>
+</html>
